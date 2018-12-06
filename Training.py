@@ -59,6 +59,7 @@ def readBasicMatrix(filename):
             for i in range(len(dealer)):
                 decisions[(player[index], dealer[i])] = vals[i]
             index += 1
+    f.close()
     return decisions
 
 def state_dealer_tuple(state, dealer):
@@ -82,6 +83,7 @@ def basic_epsilonGreedy(Q, epsilon, state, dealer):
     else:
         Qs = np.array([Q.get((state, move), 0) for move in valid])
         return valid[np.argmax(Qs)]
+    
     return
             
 
@@ -114,7 +116,9 @@ def trainQ(nRepetitions, epsilonDecayRate, learningRate, epsilonGreedyF):
             state = hand_to_state(hand)
             move = epsilonGreedyF(Q, epsilon, state, dealer)
             #print("Move is " + move)
-            newState = makeMove(hand, move, deck)
+            makeMove(hand, move, deck)
+            newState = hand_to_state(hand)
+            
 
             if state not in Q:
                 Q[(state, move)] = 0
@@ -122,31 +126,20 @@ def trainQ(nRepetitions, epsilonDecayRate, learningRate, epsilonGreedyF):
             if end_of_hand(hand, move):  # player stands or busts
                 play_dealer(dealer, deck)
                 if hand.bust():
-                    print("\nPlayer Busted!")
-                    print("Player: " + str(hand.get_value()))
-                    print("Dealer: " + str(dealer.get_value()))
-                    Q[(state, move)] += rho * (-1 - Q[(state, move)])
+                    penalty = 0.5 * (hand.get_value()-21)
+                    Q[(state, move)] += rho * (-penalty - Q[(state, move)])
                     bust += 1
                 elif winner(hand, dealer):
-                    print("\nPlayer Won!")
-                    print("Player: " + str(hand.get_value()))
-                    print("Dealer: " + str(dealer.get_value()))
                     Q[(state, move)] += rho * (1 + Q[(state, move)])
                     win += 1
                 elif winner(dealer, hand):
-                    print("\nDealer won...")
-                    print("Player: " + str(hand.get_value()))
-                    print("Dealer: " + str(dealer.get_value()))
                     '''We may reduce the -1 to put a smaller penalty on losing since
                        you can make a good decision and still lose (i.e. Stand at 19)
                     '''
-                    penalty = 0.07 * (dealer.get_value() - hand.get_value())
+                    penalty = 0.03 * (dealer.get_value() - hand.get_value())
                     Q[(state, move)] += rho * (Q[(state, move)] - penalty)
                     loss += 1
                 else:
-                    print("Draw!")
-                    print("Player: " + str(hand.get_value()))
-                    print("Dealer: " + str(dealer.get_value()))
                     draw += 1
                     
                 done = True
@@ -161,11 +154,104 @@ def trainQ(nRepetitions, epsilonDecayRate, learningRate, epsilonGreedyF):
     
     return Q, (win, loss, bust, draw)
 
-Q, results = trainQ(1000, 0.9, 0.9, basic_epsilonGreedy)
-randQ, randRes = trainQ(1000, 0.9, 0.9, random_epsilonGreedy)
+def randomBet(tableMin, won, count):
+    return random.randint(1, 5) * tableMin
 
-for entry in Q:
-    print(str(entry) + ": " + str(Q[entry]))
+def moveFromQ(Q, state):
+    valid = validMoves()
+    qVal = -1*sys.float_info.max
+    move = ""
+    for v in valid:
+        curr = (state, v)
+        if Q.get(curr, 0) > qVal:
+            qVal = Q[curr]
+            move = v
     
-print("Training results basic W/L/B/D: " + str(results))
-print("Training results random W/L/B/D: " + str(randRes))
+    return move
+
+import sys
+def playGames(Q, numGames, betF):
+    
+    tableMin = 10
+    playerBalance = 100000
+    won_last_game = False
+    deck = Deck.Deck()
+    player = Deck.Hand()
+    dealer = Deck.Hand()
+    
+    win = 0
+    loss = 0
+    bust = 0
+    draw = 0
+    
+    for n in range(numGames):
+        
+        bet = betF(tableMin, won_last_game, deck.true_count())
+        playerBalance -= bet
+        done = False
+        player.add(deck.pop_card())     #deal to player
+        deck.pop_card()                 #burn a card
+        player.add(deck.pop_card())     #deal to player
+        dealer.add(deck.pop_card())     #give dealer card
+        print("Game number " + str(n+1))
+        while not done:
+            print("Player hand: ")
+            print(player)
+            move = moveFromQ(Q, hand_to_state(player))
+            makeMove(player, move, deck)
+            print("Player decides to " + move)
+            
+            if end_of_hand(player, move):  # player stands or busts
+                play_dealer(dealer, deck)
+                if player.bust():
+                    print("Player Busted!")
+                    print("Player: " + str(player.get_value()))
+                    print("Dealer: " + str(dealer.get_value()))
+                    bust += 1
+                elif winner(player, dealer):
+                    print("Player Won!")
+                    print("Player: " + str(player.get_value()))
+                    print("Dealer: " + str(dealer.get_value()))
+                    playerBalance += bet*2
+                    win += 1
+                elif winner(dealer, player):
+                    print("Dealer won...")
+                    print("Player: " + str(player.get_value()))
+                    print("Dealer: " + str(dealer.get_value()))
+                    loss += 1
+                else:
+                    print("Draw!")
+                    print("Player: " + str(player.get_value()))
+                    print("Dealer: " + str(dealer.get_value()))
+                    playerBalance += bet
+                    draw += 1
+                    
+                done = True
+                player.clear()
+                dealer.clear()
+                print()
+    return playerBalance, (win, loss, bust, draw)
+            
+'''
+for n in range(100):
+    Q, results = trainQ(1000, 0.8, 0.9, basic_epsilonGreedy)
+    print("Training results basic W/L/B/D: " + str(results))
+    randQ, randRes = trainQ(1000, 0.8, 0.9, random_epsilonGreedy)
+    print("Training results random W/L/B/D: " + str(randRes))
+
+
+    with open('random_results.txt', 'a+') as writer:
+        writer.write(str(randRes[0]) + " " + str(randRes[1]) + " " + str(randRes[2]) + " " + str(randRes[3]) + '\n')
+    writer.close()
+    with open('basic_results.txt', 'a+') as writer:
+        writer.write(str(results[0]) + " " + str(results[1]) + " " + str(results[2]) + " " + str(results[3]) + '\n')
+    writer.close()
+'''
+print("Training...")
+Q, results = trainQ(5000, 0.9, 0.9, basic_epsilonGreedy)
+print(Q)
+print("Playing games")
+balance, results = playGames(Q, 50, randomBet)
+print("Blackjack results basic W/L/B/D: " + str(results))
+print("Player balance: " + str(balance))
+
