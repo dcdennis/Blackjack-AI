@@ -55,6 +55,7 @@ class Deck(object):
                 for rank in range(1, 14):
                     card = Card(suit, rank)
                     self.cards.append(card)
+        self.shuffle()
 
     def __str__(self):
         res = []
@@ -96,11 +97,11 @@ class Deck(object):
     def count_card(self, card):
         card_value = card.get_value()
 
-        if card_value >= 10:
+        if card_value >= 10 or card.rank is "Ace":
             return -1
         elif card_value < 10 and card_value > 6:
             return 0
-        else:
+        elif card_value <= 6:
             return 1
 
     def true_count(self):

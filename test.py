@@ -1,4 +1,24 @@
-2 3 4 5
-2 3 4 5
-3 4 5 6 
-3 4 5 6
+#! /usr/bin/python3.6
+
+import json
+
+thing = {}
+
+for n in range(60):
+    label = "LABEL" + str(n)
+    thing[label] = n
+    
+
+    
+    
+    
+with open("dict.json", "w+") as writer:
+    writer.write(json.dumps(thing))
+writer.close()
+
+with open("dict.json") as f:
+    data = f.read().replace("\n", " ")
+f.close()
+
+newDict = json.loads(data)
+print(newDict)
