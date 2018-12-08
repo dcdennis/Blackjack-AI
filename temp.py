@@ -1,41 +1,51 @@
 import Deck
 import numpy as np
 import random
+import sys
 
+
+# hand_to_state(): returns a tuple of the hand's value and number of aces
 def hand_to_state(hand):
     value = hand.get_value()
     aces = hand.get_num_aces()
     return (value, aces)
 
+<<<<<<< HEAD
 def counter_to_state(hand, count):
     value = hand.get_value()
     aces = hand.get_num_aces()
     return (value, aces, round(count))
 
+=======
+# validMoves(): returns a list of valid moves (hit or stand)
+>>>>>>> 9e62161e23a8e949ac1f7d54ec3b79f3f0a14d05
 def validMoves():
     return ["Hit", "Stand"]
 
+# makeMove(): applies move to hand
 def makeMove(hand, move, deck):
     if move == 'Hit':
         hand.add_card(deck.pop_card())
     else:
         return
 
+# end_of_hand(): returns true if move marks end of play
 def end_of_hand(hand, move):
     if hand.bust():
         return True
     if move is "Stand":
         return True
-
     return False
 
+# playDealer(): makes play decisions for dealer (stand on values of 17 or more) 
 def play_dealer(dealer, deck):
     value = dealer.get_value()
     while value < 17:
         card = deck.pop_card()
         dealer.add(card)
         value += card.get_value()
-            
+
+# winner(): returns true if p1 beats p2
 def winner(p1, p2):
     if p1.blackjack():
         return True
@@ -43,6 +53,7 @@ def winner(p1, p2):
         return True
     return p1.get_value() > p2.get_value()
 
+# random_epsilonGreedy(): epsilon greedy function for random player
 def random_epsilonGreedy(Q, epsilon, state, dealer):
     valid = validMoves()
     if np.random.uniform() < epsilon:
@@ -51,6 +62,7 @@ def random_epsilonGreedy(Q, epsilon, state, dealer):
         Qs = np.array([Q.get((state, move), 0) for move in valid])
         return valid[np.argmax(Qs)]
 
+# readBasicMatrix(): reads in decision matrix for basic player
 def readBasicMatrix(filename):
     decisions = {}
     dealer = []
@@ -67,15 +79,25 @@ def readBasicMatrix(filename):
     f.close()
     return decisions
 
+# readCardCountingmatrix(): reads in card counting matrix with card counts and BC/PA/IC values
+def readCardCountingMatrix(filename):
+    # Format: strategy: [list of card counts, list of BC/PE/IC values]
+    cc = {}
+    with open(filename) as f:
+        for line in f:
+            vals = line.split()
+            cc[vals[0]] = [vals[1:11], vals[11:]] 
+
+# state_dealer_tuple(): returns a tuple of state and dealer's card
 def state_dealer_tuple(state, dealer):
     dealerCard = dealer.cards[0].rank
     if dealerCard is 'Ace':
         dealerCard = 'A'
     elif dealerCard is 'Jack' or dealerCard is 'Queen' or dealerCard is 'King':
         dealerCard = '10'
-    
     return (state, dealerCard)
 
+# basic_epsilonGreedy(): epsilon greedy function for basic player
 def basic_epsilonGreedy(Q, epsilon, state, dealer):
     valid = validMoves()
     decisions = readBasicMatrix("basic_matrix.txt")
@@ -91,7 +113,7 @@ def basic_epsilonGreedy(Q, epsilon, state, dealer):
     
     return
             
-
+# trainQ(): trains player for nRepetitions using the provided epsion greedy function
 def trainQ(nRepetitions, epsilonDecayRate, learningRate, epsilonGreedyF):
 
     Q = {}
@@ -224,6 +246,7 @@ def trainCounterQ(nRepetitions, epsilonDecayRate, learningRate, epsilonGreedyF):
     
     return Q, (win, loss, bust, draw)
 
+<<<<<<< HEAD
 
 def randomBet(tableMin, won, count, bet):
     return random.randint(1, 5) * tableMin
@@ -248,6 +271,13 @@ def writeGameData(won, bet, count, state, dealer):
         f.write(str(won) + "\t" + str(bet) + "\t" + str(count) + "\t" + str(state) + "\t" + str(dealer) + "\n")
     f.close()
 
+=======
+# randomBet(): makes a bet for random player
+def randomBet(tableMin, won, count):
+    return random.randint(1, 5) * tableMin
+
+# moveFromQ(): makes move based on Q table
+>>>>>>> 9e62161e23a8e949ac1f7d54ec3b79f3f0a14d05
 def moveFromQ(Q, state):
     valid = validMoves()
     qVal = -1*sys.float_info.max
@@ -255,6 +285,7 @@ def moveFromQ(Q, state):
     for v in valid:
         curr = (state, v)
         if Q.get(curr, 0) > qVal:
+<<<<<<< HEAD
             qVal = Q.get(curr, 0)
             move = v
     
@@ -262,6 +293,14 @@ def moveFromQ(Q, state):
 
 import sys
 def playGames(Q, numGames, betF, counter=False):
+=======
+            qVal = Q[curr]
+            move = v 
+    return move
+
+# playGames(): plays numGames games using the provided Q table and betting function
+def playGames(Q, numGames, betF):
+>>>>>>> 9e62161e23a8e949ac1f7d54ec3b79f3f0a14d05
     
     tableMin = 10
     bet = tableMin
@@ -341,15 +380,27 @@ def playGames(Q, numGames, betF, counter=False):
                 print()
                 
     return playerBalance, (win, loss, bust, draw)
-            
-'''
-for n in range(100):
-    Q, results = trainQ(1000, 0.8, 0.9, basic_epsilonGreedy)
-    print("Training results basic W/L/B/D: " + str(results))
-    randQ, randRes = trainQ(1000, 0.8, 0.9, random_epsilonGreedy)
-    print("Training results random W/L/B/D: " + str(randRes))
+
+# Main method: train player for 5000 iterations
+if __name__ == "__main__":
+    
+    '''
+    for n in range(100):
+        Q, results = trainQ(1000, 0.8, 0.9, basic_epsilonGreedy)
+        print("Training results basic W/L/B/D: " + str(results))
+        randQ, randRes = trainQ(1000, 0.8, 0.9, random_epsilonGreedy)
+        print("Training results random W/L/B/D: " + str(randRes))
 
 
+        with open('random_results.txt', 'a+') as writer:
+            writer.write(str(randRes[0]) + " " + str(randRes[1]) + " " + str(randRes[2]) + " " + str(randRes[3]) + '\n')
+        writer.close()
+        with open('basic_results.txt', 'a+') as writer:
+            writer.write(str(results[0]) + " " + str(results[1]) + " " + str(results[2]) + " " + str(results[3]) + '\n')
+        writer.close()
+    '''
+
+<<<<<<< HEAD
     with open('random_results.txt', 'a+') as writer:
         writer.write(str(randRes[0]) + " " + str(randRes[1]) + " " + str(randRes[2]) + " " + str(randRes[3]) + '\n')
     writer.close()
@@ -371,6 +422,15 @@ balance, results = playGames(Q, iterations, counterBet, counter=True)
 print("Blackjack results basic W/L/B/D: " + str(results))
 print("Player balance: " + str(balance))
 '''
+=======
+    print("Training...")
+    Q, results = trainQ(5000, 0.9, 0.9, basic_epsilonGreedy)
+    print(Q)
+    print("Playing games")
+    balance, results = playGames(Q, 50, randomBet)
+    print("Blackjack results basic W/L/B/D: " + str(results))
+    print("Player balance: " + str(balance))
+>>>>>>> 9e62161e23a8e949ac1f7d54ec3b79f3f0a14d05
 
 for n in range(100):
     print("Playing games")
