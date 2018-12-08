@@ -1,6 +1,7 @@
 import Deck
 import numpy as np
 import random
+import sys
 
 def hand_to_state(hand):
     value = hand.get_value()
@@ -61,6 +62,14 @@ def readBasicMatrix(filename):
             index += 1
     f.close()
     return decisions
+
+def readCardCountingMatrix(filename):
+    # Format: strategy: [list of card counts, list of BC/PE/IC values]
+    cc = {}
+    with open(filename) as f:
+        for line in f:
+            vals = line.split()
+            cc[vals[0]] = [vals[1:11], vals[11:]] 
 
 def state_dealer_tuple(state, dealer):
     dealerCard = dealer.cards[0].rank
@@ -169,7 +178,6 @@ def moveFromQ(Q, state):
     
     return move
 
-import sys
 def playGames(Q, numGames, betF):
     
     tableMin = 10
@@ -247,11 +255,14 @@ for n in range(100):
         writer.write(str(results[0]) + " " + str(results[1]) + " " + str(results[2]) + " " + str(results[3]) + '\n')
     writer.close()
 '''
-print("Training...")
-Q, results = trainQ(5000, 0.9, 0.9, basic_epsilonGreedy)
-print(Q)
-print("Playing games")
-balance, results = playGames(Q, 50, randomBet)
-print("Blackjack results basic W/L/B/D: " + str(results))
-print("Player balance: " + str(balance))
+
+# Main method: train player for 5000 iterations
+if __name__ == "__main__":
+    print("Training...")
+    Q, results = trainQ(5000, 0.9, 0.9, basic_epsilonGreedy)
+    print(Q)
+    print("Playing games")
+    balance, results = playGames(Q, 50, randomBet)
+    print("Blackjack results basic W/L/B/D: " + str(results))
+    print("Player balance: " + str(balance))
 
