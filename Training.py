@@ -394,8 +394,4 @@ if __name__ == "__main__":
     print("Blackjack results basic W/L/B/D: " + str(results))
     print("Player balance: " + str(balance))
 
-    cc = readCardCountingMatrix("card_counting_matrix.txt")
-    for item in cc:
-        print(str(item) + ": " + str(cc[item]))
-
 
