@@ -1,0 +1,4 @@
+#! /bin/bash
+
+rm game_data.txt
+rm $1_results.txt

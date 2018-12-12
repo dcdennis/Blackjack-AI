@@ -1,0 +1,5 @@
+#! /bin/bash
+
+clean $1
+
+python Training.py $1 $2 $3

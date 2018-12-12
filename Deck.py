@@ -113,6 +113,9 @@ class Deck(object):
             return 1
         return decks
 
+    def penetration(self):
+        return (self.numDecks*52 - len(self.cards)) / (self.numDecks*52)
+
     def empty(self):
         return len(self.cards)==0
     

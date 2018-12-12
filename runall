@@ -1,0 +1,41 @@
+#! /bin/bash
+
+echo "Running Random"
+./run random None 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Running Basic"
+./run basic None 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Running Counter Obvious"
+./run counter obvious 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Running Counter Basic"
+./run counter basic 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Running Counter Penetration"
+./run counter penetration 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Running Counter Camouflage"
+./run counter camo 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Running Counter All-In"
+./run counter allin 100 > /dev/null &
+pid=$!
+wait $pid
+
+echo "Compiling results"
+./results.sh
+
+echo "Finished"
