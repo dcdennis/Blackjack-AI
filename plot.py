@@ -28,11 +28,15 @@ def pearson(X, Y):
 
 # spikeFlag(): checks that a user is not increasing their bet by a large margin (spiking)
 def spikeFlag(x, y, won, tableMin, filename):
+    out = ""
     for i in range(1, len(y)):
         if (y[i] - y[i-1]) > 4*tableMin:
             if won[i-1] == "False":
                 if x[i] > 2:
-                    return "Flag spike! for game: " + str(i)
+                    if i == len(y)-1:
+                        return out
+                    else:
+                        out += "Flag spike! for game: " + str(i) + "\n"
     return "none"
     
 

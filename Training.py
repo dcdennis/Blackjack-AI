@@ -327,7 +327,7 @@ def allInBet(tableMin, count, deck, bet, won):
 # writeGameData(): write game data to file
 def writeGameData(counterType, won, bet, count, state, dealer, penetration):
     with open("game_data.txt", "a+") as f:
-        f.write(str(counterType) + "\t" str(won) + "\t" + str(bet) + "\t" + str(count) + "\t" + str(state) + "\t" + str(dealer) + "\t" + str(penetration) + "\n")
+        f.write(str(won) + "\t" + str(bet) + "\t" + str(count) + "\t" + str(state) + "\t" + str(dealer) + "\t" + str(penetration) + "\t" + str(counterType) + "\n")
     f.close()
 
 
@@ -410,7 +410,7 @@ def playGames(Q, numGames, betF, counterType=None):
                     draw += 1
                     
                 done = True
-                writeGameData(won_last_game, bet, count_at_bet, hand_to_state(player), hand_to_state(dealer), deck.penetration())
+                writeGameData(counterType, won_last_game, bet, count_at_bet, hand_to_state(player), hand_to_state(dealer), deck.penetration())
                 player.clear()
                 dealer.clear()
                 print()
@@ -426,11 +426,11 @@ def playGames(Q, numGames, betF, counterType=None):
 
 # runMultiple(): test using specified player type and number of iterations
 def runMultiple(playerType, iterations, betF, counterType=None):
-    for n in range(iterations):
-        Q = fileIO.readQ(playerType + "Q.json")
-        balance, results = playGames(Q, 100, betF, counterType)
-        if counterType is not None:
+    Q = fileIO.readQ(playerType + "Q.json")
+    if counterType is not None:
             playerType += "_" + counterType
+    for n in range(iterations):
+        balance, results = playGames(Q, 100, betF, counterType)
         with open(playerType + '_results.txt', 'a+') as writer:
             writer.write(str(results[0]) + " " + str(results[1]) + " " + str(results[2]) + " " + str(results[3]) + " " + str(balance) + '\n')
         writer.close()
